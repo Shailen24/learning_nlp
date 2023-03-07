@@ -108,7 +108,7 @@ class NeuralNetwork:
         """Performs a backpropagation step of the NN
 
         Args:
-            cache (dict): Cache of values from the forward prop step
+            cache (list): Cache of values from the forward prop step
             Y (np.array(float)): labels of inputs for `cache`, of size (N, output_unit)
 
         Returns:
@@ -116,17 +116,15 @@ class NeuralNetwork:
         """
         # Y used to be shape (1, N)
         # I changed Y to shape (N, output_unit) so that Y[n] is a vector label of the n-th training data point
-        N = Y.shape[1]
+        N = Y.shape[0]
 
         # Delta_2[n][j] is the derivative of loss function J_n w.r.t. the linear combiner of the j-th neuron of the
         # final layer for the n-th piece of training data, 0-indexed
         Delta_2 = np.zeros(N, self.output_unit)
 
         for n in range(N):
-            # Can iterating over j be avoided with numpy magic?
-            for j in range(self.output_unit):
-                # See (18.24) p. 890
-                Delta_2[n][j] += (Y[n][j] - cache[n]('A2')[j]) * self.linearprime(cache[n]('Z2')[j])
+            # See (18.24) p. 890
+            Delta_2[n] += (Y[n] - cache[n]['A2']) * self.linearprime(cache[n]['Z2'])
 
         # Delta_1[n][j] is the derivative of loss function J_n w.r.t. the linear combiner of the j-th neuron of the
         # middle layer for the n-th piece of training data
@@ -137,9 +135,10 @@ class NeuralNetwork:
                 # See (18.31) p. 891
                 # j+1 because first row of Theta_2 is for biases. Theta_2[j+1] corr. to the weights to the output layer
                 # from the hidden layer's j-th neuron.
+                # TODO numpy magic here
                 E[n][j] += np.dot(Delta_2[n], self.Theta_2[j+1])
                 # See (18.32) p. 891
-                Delta_1[n][j] += E[n][j] * self.tanhprime(cache[n]('Z1')[j])
+                Delta_1[n, j] += E[n, j] * self.tanhprime(cache[n]['Z1'][j])
 
         # Grad_i has the gradients for Theta_i
 
@@ -148,20 +147,18 @@ class NeuralNetwork:
 
         # Grad_2[i+1][j] is the gradient of the link between the i-th neuron of the hidden layer and the j-th neuron of
         # the output layer, while Grad_2[0][j] is the gradient of the bias of the j-th neuron of the output layer
-        for j in range(self.output_unit):
-            for i in range(self.hidden_unit + 1):
-                for n in range(N):
-                    # TODO sum this better
-                    # See (18.21) p. 890
-                    Grad_2[i][j] += Delta_2[n][j] * cache[n]('Y1')[i]
+        for i in range(self.hidden_unit + 1):
+            for n in range(N):
+                # TODO sum this better
+                # See (18.21) p. 890
+                Grad_2[i, :] += Delta_2[n, :] * cache[n]['Y1'][i]
 
         # Grad_1[i+1][j] is the gradient of the link between the i-th neuron of the input layer and the j-th neuron of
         # the hidden layer, while Grad_1[0][j] is the gradient of the bias of the j-th neuron of the hidden layer
-        for j in range(self.hidden_unit):
-            for i in range(self.input_unit + 1):
-                for n in range(N):
-                    # See (18.21) p. 890
-                    Grad_1[i][j] += Delta_1[n][j] * cache[n]('Y0')[i]
+        for i in range(self.input_unit + 1):
+            for n in range(N):
+                # See (18.21) p. 890
+                Grad_1[i, :] += Delta_1[n, :] * cache[n]['Y0'][i]
 
         return Grad_1, Grad_2
 
