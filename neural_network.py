@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# From Theodoritis et al. pseudocode (Section 18.4)
 class NeuralNetwork:
     def __init__(self, X, hidden, Y, learning_rate=0.0001, iterations=100):
         """Create a simple feedforward neural network with a single hidden layer
@@ -105,7 +106,7 @@ class NeuralNetwork:
         return outputs, cache
 
     def loss(self, cache):
-        """Returns average loss of training data with current weights
+        """Returns average MSE loss of training data with current weights
 
         Args:
             cache (list): Cache of values from the forward prop step
