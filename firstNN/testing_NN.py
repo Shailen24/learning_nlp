@@ -1,7 +1,6 @@
 import torch
 import numpy as np
-from torchvision import datasets, transforms
-from neural_network import NeuralNetwork
+from torchvision import datasets
 import pickle
 
 
